@@ -15,7 +15,7 @@
 #define MAX_BUFFERS 32
 
 #define TEST_ERROR(condition, message, errorCode)    \
-	if (condition)                               \
+	if(condition)                               \
 {                                                    \
 	std::cout<< message;			     \
 }
@@ -79,7 +79,7 @@ NvBufferColorFormat getNvColorFormatFromV4l2Format(v4l2_format &format)
 	switch (format.fmt.pix_mp.colorspace)
 	{
 		case V4L2_COLORSPACE_SMPTE170M:
-			if (format.fmt.pix_mp.quantization == V4L2_QUANTIZATION_DEFAULT)
+			if(format.fmt.pix_mp.quantization == V4L2_QUANTIZATION_DEFAULT)
 			{
 				// "Decoder colorspace ITU-R BT.601 with standard range luma (16-235)"
 				ret_cf = NvBufferColorFormat_NV12;
@@ -91,7 +91,7 @@ NvBufferColorFormat getNvColorFormatFromV4l2Format(v4l2_format &format)
 			}
 			break;
 		case V4L2_COLORSPACE_REC709:
-			if (format.fmt.pix_mp.quantization == V4L2_QUANTIZATION_DEFAULT)
+			if(format.fmt.pix_mp.quantization == V4L2_QUANTIZATION_DEFAULT)
 			{
 				//"Decoder colorspace ITU-R BT.709 with standard range luma (16-235)";
 				ret_cf = NvBufferColorFormat_NV12_709;
@@ -109,7 +109,7 @@ NvBufferColorFormat getNvColorFormatFromV4l2Format(v4l2_format &format)
 			}
 			break;
 		default:
-			if (format.fmt.pix_mp.quantization == V4L2_QUANTIZATION_DEFAULT)
+			if(format.fmt.pix_mp.quantization == V4L2_QUANTIZATION_DEFAULT)
 			{
 				//"Decoder colorspace ITU-R BT.601 with standard range luma (16-235)";
 				ret_cf = NvBufferColorFormat_NV12;
@@ -204,7 +204,7 @@ void nvmpictx::deinitDecoderCapturePlane()
 	dec->capture_plane.deinitPlane();
 	for (int index = 0; index < numberCaptureBuffers; index++) //V4L2_MEMORY_DMABUF
 	{
-		if (dmaBufferFileDescriptor[index] != 0)
+		if(dmaBufferFileDescriptor[index] != 0)
 		{	
 			ret = NvBufferDestroy(dmaBufferFileDescriptor[index]);
 			TEST_ERROR(ret < 0, "Failed to Destroy NvBuffer", ret);
@@ -425,9 +425,9 @@ void dec_capture_loop_fcn(void *arg)
     {
         /* Refer ioctl VIDIOC_DQEVENT */
         ret = dec->dqEvent(v4l2Event, 500);
-        if (ret < 0)
+        if(ret < 0)
         {
-            if (errno == EAGAIN)
+            if(errno == EAGAIN)
             {
                 continue;
             }
@@ -441,7 +441,7 @@ void dec_capture_loop_fcn(void *arg)
     while ((v4l2Event.type != V4L2_EVENT_RESOLUTION_CHANGE) && !ctx->eos);
 
     /* Received the resolution change event, now can do respondToResolutionEvent. */
-    if (!ctx->eos) respondToResolutionEvent(v4l2Format, v4l2Crop, ctx);
+    if(!ctx->eos) respondToResolutionEvent(v4l2Format, v4l2Crop, ctx);
 	
 	while (!(ctx->eos || dec->isInError()))
 	{
@@ -449,7 +449,7 @@ void dec_capture_loop_fcn(void *arg)
 		
 		// Check for Resolution change again.
 		ret = dec->dqEvent(v4l2Event, false);
-		if (ret == 0)
+		if(ret == 0)
 		{
 			switch (v4l2Event.type)
 			{
@@ -467,11 +467,11 @@ void dec_capture_loop_fcn(void *arg)
 			v4l2_buf.m.planes = planes;
 			
 			/* Dequeue a filled buffer. */
-			if (dec->capture_plane.dqBuffer(v4l2_buf, &dec_buffer, NULL, 0))
+			if(dec->capture_plane.dqBuffer(v4l2_buf, &dec_buffer, NULL, 0))
 			{
-				if (errno == EAGAIN)
+				if(errno == EAGAIN)
 				{
-					if (v4l2_buf.flags & V4L2_BUF_FLAG_LAST)
+					if(v4l2_buf.flags & V4L2_BUF_FLAG_LAST)
 					{
 						ERROR_MSG("Got EoS at capture plane");
 						ctx->eos=true;
@@ -526,7 +526,7 @@ void dec_capture_loop_fcn(void *arg)
 			}
 
 			v4l2_buf.m.planes[0].m.fd = ctx->dmaBufferFileDescriptor[v4l2_buf.index];
-			if (dec->capture_plane.qBuffer(v4l2_buf, NULL) < 0)
+			if(dec->capture_plane.qBuffer(v4l2_buf, NULL) < 0)
 			{
 				ERROR_MSG("Error while queueing buffer at decoder capture plane");
 			}
@@ -623,7 +623,7 @@ int nvmpi_decoder_put_packet(nvmpictx* ctx,nvPacket* packet)
 
 	v4l2_buf.m.planes = planes;
 
-	if (ctx->index < (int)ctx->dec->output_plane.getNumBuffers())
+	if(ctx->index < (int)ctx->dec->output_plane.getNumBuffers())
 	{
 		nvBuffer = ctx->dec->output_plane.getNthBuffer(ctx->index);
 		v4l2_buf.index = ctx->index;
@@ -632,7 +632,7 @@ int nvmpi_decoder_put_packet(nvmpictx* ctx,nvPacket* packet)
 	else
 	{
 		ret = ctx->dec->output_plane.dqBuffer(v4l2_buf, &nvBuffer, NULL, -1);
-		if (ret < 0)
+		if(ret < 0)
 		{
 			cout << "Error DQing buffer at output plane" << std::endl;
 			return -1;
@@ -648,14 +648,14 @@ int nvmpi_decoder_put_packet(nvmpictx* ctx,nvPacket* packet)
 	v4l2_buf.timestamp.tv_usec = packet->pts % 1000000;
 
 	ret = ctx->dec->output_plane.qBuffer(v4l2_buf, NULL);
-	if (ret < 0)
+	if(ret < 0)
 	{
 		std::cout << "Error Qing buffer at output plane" << std::endl;
 		ctx->index--;
 		return -2;
 	}
 
-	if (v4l2_buf.m.planes[0].bytesused == 0)
+	if(v4l2_buf.m.planes[0].bytesused == 0)
 	{
 		ctx->eos=true;
 		//std::cout << "Input file read complete" << std::endl; //TODO log it
@@ -730,7 +730,7 @@ int nvmpi_decoder_close(nvmpictx* ctx)
 {
 	ctx->eos=true;
 	ctx->dec->capture_plane.setStreamStatus(false);
-	if (ctx->dec_capture_loop.joinable())
+	if(ctx->dec_capture_loop.joinable())
 	{
 		ctx->dec_capture_loop.join();
 	}

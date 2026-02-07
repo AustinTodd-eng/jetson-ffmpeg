@@ -11,7 +11,7 @@
 
 #define MAX_BUFFERS 32
 #define TEST_ERROR(condition, message, errorCode)    \
-	if (condition)                               \
+	if(condition)                               \
 {                                                    \
 	std::cout<< message;                         \
 }
@@ -65,13 +65,13 @@ static bool encoder_capture_plane_dq_callback(struct v4l2_buffer *v4l2_buf, NvBu
 {
 	nvmpictx *ctx = (nvmpictx*)arg;
 
-	if (v4l2_buf == NULL)
+	if(v4l2_buf == NULL)
 	{
 		cout << "Error while dequeing buffer from output plane" << endl;
 		return false;
 	}
 
-	if (buffer->planes[0].bytesused == 0)
+	if(buffer->planes[0].bytesused == 0)
 	{
 		ctx->capPlaneGotEOS = true;
 		//cout << "Got 0 size buffer in capture \n"; //TODO  log it
@@ -101,7 +101,7 @@ static bool encoder_capture_plane_dq_callback(struct v4l2_buffer *v4l2_buf, NvBu
 		ctx->pktPool->qFilledBuf(pkt);
 	}
 	
-	if (ctx->enc->capture_plane.qBuffer(*v4l2_buf, NULL) < 0)
+	if(ctx->enc->capture_plane.qBuffer(*v4l2_buf, NULL) < 0)
 	{
 		//TODO error handling
 		ERROR_MSG("Error while Qing buffer at capture plane");
@@ -111,7 +111,7 @@ static bool encoder_capture_plane_dq_callback(struct v4l2_buffer *v4l2_buf, NvBu
 	return true;
 }
 
-#if (OUTPLANE_MEMTYPE == OUTPLANE_MEMTYPE_DMA)
+#if(OUTPLANE_MEMTYPE == OUTPLANE_MEMTYPE_DMA)
 static int setup_output_dmabuf(nvmpictx *ctx, uint32_t num_buffers )
 {
     int ret=0;
@@ -123,7 +123,7 @@ static int setup_output_dmabuf(nvmpictx *ctx, uint32_t num_buffers )
         cerr << "reqbufs failed for output plane V4L2_MEMORY_DMABUF" << endl;
         return ret;
     }
-    for (uint32_t i = 0; i < ctx->enc->output_plane.getNumBuffers(); i++)
+    for(uint32_t i = 0; i < ctx->enc->output_plane.getNumBuffers(); i++)
     {
         cParams.width = ctx->width;
         cParams.height = ctx->height;
@@ -141,15 +141,15 @@ static int setup_output_dmabuf(nvmpictx *ctx, uint32_t num_buffers )
                 cParams.colorFormat = ctx->enable_extended_colorformat ?
                     NVBUF_COLOR_FORMAT_YUV420_ER : NVBUF_COLOR_FORMAT_YUV420;
         }
-        if (ctx->is_semiplanar)
+        if(ctx->is_semiplanar)
         {
             cParams.colorFormat = NVBUF_COLOR_FORMAT_NV12;
         }
-        if (ctx->encoder_pixfmt == V4L2_PIX_FMT_H264)
+        if(ctx->encoder_pixfmt == V4L2_PIX_FMT_H264)
         {
-            if (ctx->enableLossless)
+            if(ctx->enableLossless)
             {
-                if (ctx->is_semiplanar)
+                if(ctx->is_semiplanar)
                     cParams.colorFormat = NVBUF_COLOR_FORMAT_NV24;
                 else
                     cParams.colorFormat = NVBUF_COLOR_FORMAT_YUV444;
@@ -157,19 +157,19 @@ static int setup_output_dmabuf(nvmpictx *ctx, uint32_t num_buffers )
         }
         
         
-        else if (ctx->encoder_pixfmt == V4L2_PIX_FMT_H265)
+        else if(ctx->encoder_pixfmt == V4L2_PIX_FMT_H265)
         {
-            if (ctx->chroma_format_idc == 3)
+            if(ctx->chroma_format_idc == 3)
             {
-                if (ctx->is_semiplanar)
+                if(ctx->is_semiplanar)
                     cParams.colorFormat = NVBUF_COLOR_FORMAT_NV24;
                 else
                     cParams.colorFormat = NVBUF_COLOR_FORMAT_YUV444;
 
-                if (ctx->bit_depth == 10)
+                if(ctx->bit_depth == 10)
                     cParams.colorFormat = NVBUF_COLOR_FORMAT_NV24_10LE;
             }
-            if (ctx->profile == V4L2_MPEG_VIDEO_H265_PROFILE_MAIN10 && (ctx->bit_depth == 10))
+            if(ctx->profile == V4L2_MPEG_VIDEO_H265_PROFILE_MAIN10 && (ctx->bit_depth == 10))
             {
                 cParams.colorFormat = NVBUF_COLOR_FORMAT_NV12_10LE;
             }
@@ -211,7 +211,7 @@ nvmpictx* nvmpi_create_encoder(nvEncParam* param)
 	ctx->pktPool = new NVMPI_bufPool<nvPacket*>();
 	ctx->enable_extended_colorformat=false;
 	ctx->packets_num=param->capture_num;
-#if (OUTPLANE_MEMTYPE == OUTPLANE_MEMTYPE_DMA)
+#if(OUTPLANE_MEMTYPE == OUTPLANE_MEMTYPE_DMA)
 	ctx->output_plane_fd = new int[ctx->packets_num];
 #endif
 	ctx->qmax=param->qmax;
@@ -350,7 +350,7 @@ nvmpictx* nvmpi_create_encoder(nvEncParam* param)
 			ctx->raw_pixfmt = V4L2_PIX_FMT_YUV420M;
 	}
 
-	if (ctx->enableLossless && param->codingType == NV_VIDEO_CodingH264)
+	if(ctx->enableLossless && param->codingType == NV_VIDEO_CodingH264)
 	{
 		ctx->profile = V4L2_MPEG_VIDEO_H264_PROFILE_HIGH_444_PREDICTIVE;
 		ret = ctx->enc->setOutputPlaneFormat(V4L2_PIX_FMT_YUV444M, ctx->width,ctx->height);
@@ -401,7 +401,7 @@ nvmpictx* nvmpi_create_encoder(nvEncParam* param)
 	}
 
 
-	if (ctx->enableLossless)
+	if(ctx->enableLossless)
 	{
 		ret = ctx->enc->setConstantQp(0);
 		TEST_ERROR(ret < 0, "Could not set encoder constant qp=0", ret);
@@ -412,11 +412,11 @@ nvmpictx* nvmpi_create_encoder(nvEncParam* param)
 		ret = ctx->enc->setRateControlMode(ctx->ratecontrol);
 		TEST_ERROR(ret < 0, "Could not set encoder rate control mode", ret);
 
-		if (ctx->ratecontrol == V4L2_MPEG_VIDEO_BITRATE_MODE_VBR)
+		if(ctx->ratecontrol == V4L2_MPEG_VIDEO_BITRATE_MODE_VBR)
 		{
 			uint32_t peak_bitrate;
 			//TODO log warning?
-			if (ctx->peak_bitrate < ctx->bitrate)
+			if(ctx->peak_bitrate < ctx->bitrate)
 				peak_bitrate = 1.2f * ctx->bitrate;
 			else
 				peak_bitrate = ctx->peak_bitrate;
@@ -451,7 +451,7 @@ nvmpictx* nvmpi_create_encoder(nvEncParam* param)
 	TEST_ERROR(ret < 0, "Could not set framerate", ret);
 	
 	//ret = ctx->enc->output_plane.setupPlane(V4L2_MEMORY_USERPTR, ctx->packets_num, false, true);
-#if (OUTPLANE_MEMTYPE == OUTPLANE_MEMTYPE_MMAP)
+#if(OUTPLANE_MEMTYPE == OUTPLANE_MEMTYPE_MMAP)
 	ret = ctx->enc->output_plane.setupPlane(V4L2_MEMORY_MMAP, ctx->packets_num, true, false);
 #else
 	ret = setup_output_dmabuf(ctx,ctx->packets_num); //V4L2_MEMORY_DMABUF
@@ -488,7 +488,7 @@ nvmpictx* nvmpi_create_encoder(nvEncParam* param)
     }
 
 	// Enqueue all the empty capture plane buffers
-	for (uint32_t i = 0; i < ctx->enc->capture_plane.getNumBuffers(); i++){
+	for(uint32_t i = 0; i < ctx->enc->capture_plane.getNumBuffers(); i++){
 		struct v4l2_buffer v4l2_buf;
 		struct v4l2_plane planes[MAX_PLANES];
 		memset(&v4l2_buf, 0, sizeof(v4l2_buf));
@@ -510,7 +510,7 @@ int copyFrameToNvBuf(nvFrame* frame, NvBuffer& buffer)
 	uint32_t i, j;
 	char *dataDst;
 	char *dataSrc;
-	for (i = 0; i < buffer.n_planes; i++)
+	for(i = 0; i < buffer.n_planes; i++)
 	{
 		NvBuffer::NvBufferPlane &plane = buffer.planes[i];
 		unsigned int &frameLineSize = frame->linesize[i];
@@ -518,7 +518,7 @@ int copyFrameToNvBuf(nvFrame* frame, NvBuffer& buffer)
 		dataDst = (char *) plane.data;
 		dataSrc = (char *) frame->payload[i];
 		plane.bytesused = 0;
-		for (j = 0; j < plane.fmt.height; j++)
+		for(j = 0; j < plane.fmt.height; j++)
 		{
 			memcpy(dataDst, dataSrc, copySz);
 			dataDst += plane.fmt.stride;
@@ -552,12 +552,12 @@ int nvmpi_encoder_put_frame(nvmpictx* ctx,nvFrame* frame)
 		v4l2_buf.index = ctx->index;
 		ctx->index++;
 		
-#if (OUTPLANE_MEMTYPE == OUTPLANE_MEMTYPE_DMA)
+#if(OUTPLANE_MEMTYPE == OUTPLANE_MEMTYPE_DMA)
 		v4l2_buf.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
 		v4l2_buf.memory = V4L2_MEMORY_DMABUF;
 		// Map output plane buffer for memory type DMABUF.
 		ret = ctx->enc->output_plane.mapOutputBuffers(v4l2_buf, ctx->output_plane_fd[v4l2_buf.index]);
-		if (ret < 0)
+		if(ret < 0)
 		{
 			cerr << "Error while mapping buffer at output plane" << endl;
 		}
@@ -570,7 +570,7 @@ int nvmpi_encoder_put_frame(nvmpictx* ctx,nvFrame* frame)
 		 * it could take up to 1000/20=50ms... latency
 		 */
 		ret = ctx->enc->output_plane.dqBuffer(v4l2_buf, &nvBuffer, NULL, -1);
-		if (ret < 0)
+		if(ret < 0)
 		{
 			cout << "Error DQing buffer at output plane" << std::endl;
 			return false;
@@ -593,23 +593,23 @@ int nvmpi_encoder_put_frame(nvmpictx* ctx,nvFrame* frame)
 	}
 
 	//needed for V4L2_MEMORY_MMAP and V4L2_MEMORY_DMABUF
-	for (uint32_t j = 0 ; j < nvBuffer->n_planes; j++)
+	for(uint32_t j = 0 ; j < nvBuffer->n_planes; j++)
 	{
 #ifdef WITH_NVUTILS
 		NvBufSurface *nvbuf_surf = 0;
 		ret = NvBufSurfaceFromFd (nvBuffer->planes[j].fd, (void**)(&nvbuf_surf));
-		if (ret < 0)
+		if(ret < 0)
 		{
 			cerr << "Error while NvBufSurfaceFromFd" << endl;
 		}
 		ret = NvBufSurfaceSyncForDevice (nvbuf_surf, 0, j);
-		if (ret < 0)
+		if(ret < 0)
 		{
 			cerr << "Error while NvBufSurfaceSyncForDevice at output plane for V4L2_MEMORY_DMABUF" << endl;
 		}
 #else
 		ret = NvBufferMemSyncForDevice (nvBuffer->planes[j].fd, j, (void **)&nvBuffer->planes[j].data);
-		if (ret < 0)
+		if(ret < 0)
 		{
 			cerr << "Error while NvBufferMemSyncForDevice at output plane for V4L2_MEMORY_DMABUF" << endl;
 		}
@@ -617,8 +617,8 @@ int nvmpi_encoder_put_frame(nvmpictx* ctx,nvFrame* frame)
 	}
 	
 	//for V4L2_MEMORY_DMABUF only
-#if (OUTPLANE_MEMTYPE == OUTPLANE_MEMTYPE_DMA)
-	for (uint32_t j = 0; j < nvBuffer->n_planes; j++)
+#if(OUTPLANE_MEMTYPE == OUTPLANE_MEMTYPE_DMA)
+	for(uint32_t j = 0; j < nvBuffer->n_planes; j++)
 	{
 		v4l2_buf.m.planes[j].bytesused = nvBuffer->planes[j].bytesused;
 	}
@@ -678,15 +678,15 @@ int nvmpi_encoder_close(nvmpictx* ctx)
 		//sem_destroy(&ctx.encoderthread_sema);
 	}
 	
-#if (OUTPLANE_MEMTYPE == OUTPLANE_MEMTYPE_DMA)	
+#if(OUTPLANE_MEMTYPE == OUTPLANE_MEMTYPE_DMA)	
 	int ret;
     if(ctx->enc)
     {
-        for (uint32_t i = 0; i < ctx->enc->output_plane.getNumBuffers(); i++)
+        for(uint32_t i = 0; i < ctx->enc->output_plane.getNumBuffers(); i++)
         {
             // Unmap output plane buffer for memory type DMABUF.
             ret = ctx->enc->output_plane.unmapOutputBuffers(i, ctx->output_plane_fd[i]);
-            if (ret < 0)
+            if(ret < 0)
             {
                 cerr << "Error while unmapping buffer at output plane" << endl;
             }
